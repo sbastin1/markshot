@@ -1,0 +1,22 @@
+$color-primary: #da0037;
+$color-background: #171717;
+$color-titlebar: #101010;
+$color-surface: #ffffff;
+$color-danger: #ff9aa9;
+
+$color-text: #ededed;
+
+$color-border-titlebar: rgba($color-text, 0.08);
+$color-border-subtle: rgba($color-text, 0.12);
+$color-border-control: rgba($color-text, 0.15);
+$color-panel-background: rgba($color-surface, 0.04);
+$color-control-background: rgba($color-surface, 0.05);
+$color-hover-background: rgba($color-surface, 0.1);
+$color-canvas-background: rgba(#000000, 0.22);
+$color-primary-soft: rgba($color-primary, 0.18);
+$color-primary-strong: rgba($color-primary, 0.8);
+$color-primary-shadow: rgba($color-primary, 0.22);
+$color-text-soft: rgba($color-text, 0.72);
+$color-text-medium: rgba($color-text, 0.78);
+$color-text-strong: rgba($color-text, 0.8);
+$color-text-subtle: rgba($color-text, 0.64);

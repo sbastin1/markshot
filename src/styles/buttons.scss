@@ -1,0 +1,25 @@
+.primary-button,
+.ghost-button {
+    border-radius: $radius-pill;
+    padding: $space-button-block $space-4;
+    color: $color-text;
+    cursor: pointer;
+    font-weight: $font-weight-strong;
+}
+
+.primary-button {
+    border: 0;
+    background: $color-primary;
+    box-shadow: $shadow-primary-button;
+}
+
+.ghost-button {
+    border: 1px solid $color-border-control;
+    background: $color-control-background;
+}
+
+.primary-button:disabled,
+.ghost-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+}

@@ -1,0 +1,77 @@
+.app-frame {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: $size-titlebar-height 1fr;
+    overflow: hidden;
+    background: $color-background;
+}
+
+.titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid $color-border-titlebar;
+    background: $color-titlebar;
+    user-select: none;
+
+    &__brand {
+        display: flex;
+        align-items: center;
+        gap: $space-gap-xs;
+        padding-left: $space-gap-md;
+        color: $color-text-strong;
+        font-size: $font-size-titlebar;
+        font-weight: $font-weight-strong;
+        letter-spacing: $letter-spacing-tight;
+    }
+
+    &__controls {
+        display: flex;
+        align-self: stretch;
+    }
+
+    &__button {
+        width: $size-titlebar-button-width;
+        border: 0;
+        color: $color-text-soft;
+        background: transparent;
+        line-height: 1;
+        cursor: default;
+
+        &:hover {
+            color: $color-text;
+            background: $color-hover-background;
+        }
+
+        &--close:hover {
+            background: $color-primary;
+        }
+
+        &--maximize {
+            font-size: $font-size-titlebar;
+        }
+    }
+}
+
+.app-shell {
+    min-height: 0;
+    padding: $space-4;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: $space-4;
+}
+
+.empty-state {
+    border: 1px solid $color-border-subtle;
+    border-radius: $radius-panel;
+    padding: $space-8;
+    color: $color-text-subtle;
+    background: $color-panel-background;
+}
+
+.empty-state--large {
+    display: grid;
+    place-items: center;
+    min-height: $size-empty-state-min-height;
+    font-weight: $font-weight-strong;
+}
