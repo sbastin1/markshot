@@ -13,7 +13,14 @@
     </header>
 
     <main class="app-shell">
-      <AppNavbar :is-capturing="isCapturing" @capture="captureScreenshot" @history="showHistory" @settings="showSettings" />
+      <AppNavbar
+        :can-return-to-editor="Boolean(screenshotUrl) && view !== 'editor'"
+        :is-capturing="isCapturing"
+        @capture="captureScreenshot"
+        @editor="showEditor"
+        @history="showHistory"
+        @settings="showSettings"
+      />
 
       <StatusMessage :is-error="hasError" :message="statusMessage" />
 
@@ -146,6 +153,11 @@ async function showHistory() {
   } catch (error) {
     setStatus(errorMessage(error), true);
   }
+}
+
+function showEditor() {
+  view.value = "editor";
+  setStatus("", false);
 }
 
 async function showSettings() {

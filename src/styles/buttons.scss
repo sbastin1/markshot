@@ -2,6 +2,10 @@
 .ghost-button {
     border-radius: $radius-pill;
     padding: $space-button-block $space-4;
+    min-height: $size-control-height;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: $color-text;
     cursor: pointer;
     font-weight: $font-weight-strong;

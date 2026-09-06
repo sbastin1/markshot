@@ -42,7 +42,7 @@ const emit = defineEmits<{
 
 const selectedTool = ref<Tool>("rectangle");
 const selectedColor = ref("#da0037");
-const strokeWidth = ref(6);
+const strokeWidth = ref(4);
 
 const {
     annotations,

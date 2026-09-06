@@ -7,6 +7,16 @@
 
         <div class="app-navbar__actions">
             <button
+                v-if="canReturnToEditor"
+                class="ghost-button app-navbar__icon-button app-navbar__icon-button--back"
+                type="button"
+                aria-label="Return to editor"
+                title="Return to editor"
+                @click="$emit('editor')"
+            >
+                <span aria-hidden="true"></span>
+            </button>
+            <button
                 class="primary-button"
                 type="button"
                 :disabled="isCapturing"
@@ -22,7 +32,7 @@
                 History
             </button>
             <button
-                class="ghost-button app-navbar__settings-button"
+                class="ghost-button app-navbar__icon-button app-navbar__icon-button--settings"
                 type="button"
                 aria-label="Settings"
                 title="Settings"
@@ -38,11 +48,13 @@
 import markshotLogo from "../assets/markshot-logo.svg";
 
 defineProps<{
+    canReturnToEditor: boolean;
     isCapturing: boolean;
 }>();
 
 defineEmits<{
     capture: [];
+    editor: [];
     history: [];
     settings: [];
 }>();
@@ -81,7 +93,7 @@ defineEmits<{
         flex-wrap: wrap;
     }
 
-    &__settings-button {
+    &__icon-button {
         width: $size-control-height;
         height: $size-control-height;
         padding: 0;
@@ -92,6 +104,13 @@ defineEmits<{
             width: 1.2rem;
             height: 1.2rem;
             background: currentColor;
+        }
+
+        &--back span {
+            mask: url("../assets/arrow-left-icon.svg") center / contain no-repeat;
+        }
+
+        &--settings span {
             mask: url("../assets/settings-icon.svg") center / contain no-repeat;
         }
     }
