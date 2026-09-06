@@ -114,7 +114,6 @@ function saveCanvas() {
     &__viewport {
         min-height: 0;
         overflow: auto;
-        border-radius: $radius-control;
         background: $color-canvas-background;
     }
 
