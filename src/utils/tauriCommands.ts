@@ -1,5 +1,5 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
-import type { HistoryItem, SaveResult, ScreenshotResult } from "../types/screenshot";
+import type { AppSettings, HistoryItem, SaveResult, ScreenshotResult } from "../types/screenshot";
 
 type HistoryItemResponse = Omit<HistoryItem, "image_url">;
 
@@ -24,12 +24,15 @@ export function copyScreenshotToClipboard(path: string) {
   return invoke("copy_screenshot_to_clipboard", { path });
 }
 
-export function getScreenshotDirectory() {
-  return invoke<string>("get_screenshot_directory");
+export function getSettings() {
+  return invoke<AppSettings>("get_settings");
 }
 
-export function setScreenshotDirectory(directory: string) {
-  return invoke<string>("set_screenshot_directory", { directory });
+export function setSettings(settings: AppSettings) {
+  return invoke<AppSettings>("set_settings", {
+    screenshotDirectory: settings.screenshot_directory,
+    maxHistoryFiles: settings.max_history_files,
+  });
 }
 
 export function startupShouldTakeScreenshot() {

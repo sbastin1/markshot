@@ -30,6 +30,7 @@
         v-else-if="view === 'settings'"
         :directory="screenshotDirectory"
         :is-saving="isSavingSettings"
+        :max-history-files="maxHistoryFiles"
         @save="saveSettings"
       />
 
@@ -61,10 +62,10 @@ import { errorMessage } from "./utils/errors";
 import { fileName } from "./utils/file";
 import {
   copyScreenshotToClipboard,
-  getScreenshotDirectory,
+  getSettings,
   listEditedScreenshots,
   saveAndCopyEditedScreenshot,
-  setScreenshotDirectory,
+  setSettings,
   startupShouldTakeScreenshot,
   takeScreenshot,
 } from "./utils/tauriCommands";
@@ -84,6 +85,7 @@ const statusMessage = ref("");
 const hasError = ref(false);
 const screenshotUrl = ref("");
 const screenshotDirectory = ref("");
+const maxHistoryFiles = ref(15);
 const historyItems = ref<HistoryItem[]>([]);
 
 let unlistenScreenshotCommand: (() => void) | null = null;
@@ -165,20 +167,27 @@ async function showSettings() {
   setStatus("", false);
 
   try {
-    screenshotDirectory.value = await getScreenshotDirectory();
+    const settings = await getSettings();
+    screenshotDirectory.value = settings.screenshot_directory;
+    maxHistoryFiles.value = settings.max_history_files;
   } catch (error) {
     setStatus(errorMessage(error), true);
   }
 }
 
-async function saveSettings(directory: string) {
+async function saveSettings(directory: string, historyLimit: number) {
   isSavingSettings.value = true;
   setStatus("", false);
 
   try {
-    screenshotDirectory.value = await setScreenshotDirectory(directory);
+    const settings = await setSettings({
+      screenshot_directory: directory,
+      max_history_files: historyLimit,
+    });
+    screenshotDirectory.value = settings.screenshot_directory;
+    maxHistoryFiles.value = settings.max_history_files;
     historyItems.value = [];
-    setStatus("Screenshot save directory updated.", false);
+    setStatus("Settings updated.", false);
   } catch (error) {
     setStatus(errorMessage(error), true);
   } finally {

@@ -13,3 +13,8 @@ export type SaveResult = {
   copied: boolean;
   warning: string | null;
 };
+
+export type AppSettings = {
+  screenshot_directory: string;
+  max_history_files: number;
+};

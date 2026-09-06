@@ -2,7 +2,7 @@
     <section class="settings-panel" aria-label="Settings">
         <div class="settings-panel__header">
             <h1>Settings</h1>
-            <p>Choose where edited screenshots are saved and loaded from.</p>
+            <p>Choose where edited screenshots are saved and how many stay in history.</p>
         </div>
 
         <form class="settings-panel__form" @submit.prevent="submitSettings">
@@ -16,8 +16,23 @@
                 />
             </label>
 
+            <label class="settings-panel__field">
+                Maximum history files
+                <input
+                    v-model="maxHistoryFilesValue"
+                    type="number"
+                    min="1"
+                    step="1"
+                    inputmode="numeric"
+                    autocomplete="off"
+                />
+                <span class="settings-panel__hint">
+                    Older edited screenshots are deleted when this maximum is exceeded.
+                </span>
+            </label>
+
             <div class="settings-panel__actions">
-                <button class="primary-button" type="submit" :disabled="isSaving">
+                <button class="primary-button" type="submit" :disabled="isSaving || !isHistoryLimitValid">
                     {{ isSaving ? "Saving..." : "Save Settings" }}
                 </button>
             </div>
@@ -26,18 +41,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 
 const props = defineProps<{
     directory: string;
     isSaving: boolean;
+    maxHistoryFiles: number;
 }>();
 
 const emit = defineEmits<{
-    save: [directory: string];
+    save: [directory: string, maxHistoryFiles: number];
 }>();
 
 const directoryValue = ref(props.directory);
+const maxHistoryFilesValue = ref(String(props.maxHistoryFiles));
+
+const isHistoryLimitValid = computed(() => {
+    const value = Number(maxHistoryFilesValue.value);
+
+    return Number.isInteger(value) && value >= 1;
+});
 
 watch(
     () => props.directory,
@@ -46,8 +69,21 @@ watch(
     },
 );
 
+watch(
+    () => props.maxHistoryFiles,
+    (maxHistoryFiles) => {
+        maxHistoryFilesValue.value = String(maxHistoryFiles);
+    },
+);
+
 function submitSettings() {
-    emit("save", directoryValue.value.trim());
+    const maxHistoryFiles = Number(maxHistoryFilesValue.value);
+
+    if (!Number.isInteger(maxHistoryFiles) || maxHistoryFiles < 1) {
+        return;
+    }
+
+    emit("save", directoryValue.value.trim(), maxHistoryFiles);
 }
 </script>
 
@@ -96,6 +132,11 @@ function submitSettings() {
             color: $color-text;
             background: $color-control-background;
         }
+    }
+
+    &__hint {
+        color: $color-text-soft;
+        font-size: 0.9rem;
     }
 
     &__actions {

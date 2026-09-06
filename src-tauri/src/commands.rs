@@ -14,6 +14,12 @@ use crate::{
 };
 
 #[derive(Serialize)]
+pub struct SettingsResult {
+    screenshot_directory: String,
+    max_history_files: usize,
+}
+
+#[derive(Serialize)]
 pub struct SaveResult {
     path: String,
     copied: bool,
@@ -32,6 +38,7 @@ pub fn save_and_copy_edited_screenshot(
 ) -> Result<SaveResult, String> {
     let image_bytes = decode_png_data_url(&data_url)?;
     let screenshot_directory = settings.screenshot_directory()?;
+    let max_history_files = settings.max_history_files()?;
     let edited_path = edited_screenshot_path(&screenshot_directory)?;
 
     fs::write(&edited_path, &image_bytes).map_err(|error| {
@@ -42,7 +49,7 @@ pub fn save_and_copy_edited_screenshot(
     })?;
 
     let copy_result = copy_png_bytes_to_clipboard(&image_bytes);
-    cleanup_known_screenshots(&screenshot_directory)?;
+    cleanup_known_screenshots(&screenshot_directory, max_history_files)?;
 
     Ok(SaveResult {
         path: edited_path.to_string_lossy().to_string(),
@@ -55,7 +62,10 @@ pub fn save_and_copy_edited_screenshot(
 pub fn list_edited_screenshots(
     settings: tauri::State<AppSettings>,
 ) -> Result<Vec<HistoryItem>, String> {
-    load_edited_screenshots(&settings.screenshot_directory()?)
+    load_edited_screenshots(
+        &settings.screenshot_directory()?,
+        settings.max_history_files()?,
+    )
 }
 
 #[tauri::command]
@@ -76,22 +86,28 @@ pub fn copy_screenshot_to_clipboard(
 }
 
 #[tauri::command]
-pub fn get_screenshot_directory(settings: tauri::State<AppSettings>) -> Result<String, String> {
-    Ok(settings
-        .screenshot_directory()?
-        .to_string_lossy()
-        .to_string())
+pub fn get_settings(settings: tauri::State<AppSettings>) -> Result<SettingsResult, String> {
+    let settings = settings.value()?;
+
+    Ok(SettingsResult {
+        screenshot_directory: settings.screenshot_directory.to_string_lossy().to_string(),
+        max_history_files: settings.max_history_files,
+    })
 }
 
 #[tauri::command]
-pub fn set_screenshot_directory(
-    directory: String,
+pub fn set_settings(
+    screenshot_directory: String,
+    max_history_files: usize,
     settings: tauri::State<AppSettings>,
-) -> Result<String, String> {
-    Ok(settings
-        .set_screenshot_directory(PathBuf::from(directory))?
-        .to_string_lossy()
-        .to_string())
+) -> Result<SettingsResult, String> {
+    let settings = settings.set_value(PathBuf::from(screenshot_directory), max_history_files)?;
+    cleanup_known_screenshots(&settings.screenshot_directory, settings.max_history_files)?;
+
+    Ok(SettingsResult {
+        screenshot_directory: settings.screenshot_directory.to_string_lossy().to_string(),
+        max_history_files: settings.max_history_files,
+    })
 }
 
 #[tauri::command]

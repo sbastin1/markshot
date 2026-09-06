@@ -8,7 +8,6 @@ use serde::Serialize;
 
 pub const EDITED_SCREENSHOT_PREFIX: &str = "edited-screenshot";
 pub const RAW_SCREENSHOT_PREFIX: &str = "screenshot";
-pub const MAX_EDITED_SCREENSHOTS: usize = 15;
 pub const MAX_RAW_SCREENSHOTS: usize = 3;
 
 #[derive(Serialize)]
@@ -26,22 +25,14 @@ pub fn edited_screenshot_path(directory: &Path) -> Result<PathBuf, String> {
     screenshot_path(directory, EDITED_SCREENSHOT_PREFIX)
 }
 
-pub fn list_edited_screenshots(directory: &Path) -> Result<Vec<HistoryItem>, String> {
-    let mut files = screenshot_files(directory, EDITED_SCREENSHOT_PREFIX)?;
-    files.sort_by(|left, right| right.created_at.cmp(&left.created_at));
-
-    for file in files.iter().skip(MAX_EDITED_SCREENSHOTS) {
-        fs::remove_file(&file.path).map_err(|error| {
-            format!(
-                "Failed to delete old screenshot {}: {error}",
-                file.path.display()
-            )
-        })?;
-    }
+pub fn list_edited_screenshots(
+    directory: &Path,
+    max_history_files: usize,
+) -> Result<Vec<HistoryItem>, String> {
+    let files = cleanup_screenshots(directory, EDITED_SCREENSHOT_PREFIX, max_history_files)?;
 
     Ok(files
         .into_iter()
-        .take(MAX_EDITED_SCREENSHOTS)
         .map(|file| HistoryItem {
             path: file.path.to_string_lossy().to_string(),
             created_at: file.created_at,
@@ -49,9 +40,11 @@ pub fn list_edited_screenshots(directory: &Path) -> Result<Vec<HistoryItem>, Str
         .collect())
 }
 
-pub fn cleanup_known_screenshots(directory: &Path) -> Result<(), String> {
-    cleanup_screenshots(directory, EDITED_SCREENSHOT_PREFIX, MAX_EDITED_SCREENSHOTS)?;
-    cleanup_screenshots(directory, RAW_SCREENSHOT_PREFIX, MAX_RAW_SCREENSHOTS)
+pub fn cleanup_known_screenshots(directory: &Path, max_history_files: usize) -> Result<(), String> {
+    cleanup_screenshots(directory, EDITED_SCREENSHOT_PREFIX, max_history_files)?;
+    cleanup_screenshots(directory, RAW_SCREENSHOT_PREFIX, MAX_RAW_SCREENSHOTS)?;
+
+    Ok(())
 }
 
 pub fn is_edited_screenshot_path(directory: &Path, path: &Path) -> bool {
@@ -126,11 +119,17 @@ fn screenshot_files(directory: &Path, prefix: &str) -> Result<Vec<ScreenshotFile
     Ok(files)
 }
 
-fn cleanup_screenshots(directory: &Path, prefix: &str, max_files: usize) -> Result<(), String> {
+fn cleanup_screenshots(
+    directory: &Path,
+    prefix: &str,
+    max_files: usize,
+) -> Result<Vec<ScreenshotFile>, String> {
     let mut files = screenshot_files(directory, prefix)?;
     files.sort_by(|left, right| right.created_at.cmp(&left.created_at));
 
-    for file in files.into_iter().skip(max_files) {
+    let old_files = files.split_off(max_files.min(files.len()));
+
+    for file in old_files {
         fs::remove_file(&file.path).map_err(|error| {
             format!(
                 "Failed to delete old screenshot {}: {error}",
@@ -139,5 +138,5 @@ fn cleanup_screenshots(directory: &Path, prefix: &str, max_files: usize) -> Resu
         })?;
     }
 
-    Ok(())
+    Ok(files)
 }

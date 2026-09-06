@@ -30,8 +30,8 @@ pub fn run() {
             commands::save_and_copy_edited_screenshot,
             commands::list_edited_screenshots,
             commands::copy_screenshot_to_clipboard,
-            commands::get_screenshot_directory,
-            commands::set_screenshot_directory,
+            commands::get_settings,
+            commands::set_settings,
             commands::startup_should_take_screenshot
         ])
         .run(tauri::generate_context!())
