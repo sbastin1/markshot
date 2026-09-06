@@ -12,7 +12,7 @@ export default defineConfig(() => ({
       scss: {
         loadPaths: ["src"],
         additionalData:
-          '@use "styles/colors.scss" as *; @use "styles/spacing.scss" as *; @use "styles/radius.scss" as *; @use "styles/typography.scss" as *; @use "styles/sizes.scss" as *; @use "styles/effects.scss" as *; @use "styles/breakpoints.scss" as *;',
+          '@use "styles/colors.scss" as *; @use "styles/spacing.scss" as *; @use "styles/radius.scss" as *; @use "styles/typography.scss" as *; @use "styles/sizes.scss" as *; @use "styles/breakpoints.scss" as *;',
       },
     },
   },

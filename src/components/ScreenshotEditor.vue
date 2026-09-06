@@ -99,11 +99,16 @@ function saveCanvas() {
 <style scoped lang="scss">
 .screenshot-editor {
     min-height: 0;
+    width: fit-content;
+    min-width: min(100%, $size-editor-min-width);
+    max-width: 100%;
+    justify-self: center;
     border: 1px solid $color-border-subtle;
     border-radius: $radius-panel;
     padding: $space-4;
     display: grid;
-    gap: $space-4;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: $space-gap-md;
     background: $color-panel-background;
 
     &__viewport {
@@ -115,7 +120,6 @@ function saveCanvas() {
 
     &__canvas {
         display: block;
-        max-width: 100%;
         height: auto;
         cursor: crosshair;
         touch-action: none;

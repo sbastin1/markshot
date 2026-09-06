@@ -97,6 +97,7 @@ function updateStrokeWidth(event: Event) {
 .editor-toolbar__control {
     display: flex;
     align-items: center;
+    text-align: center;
 }
 
 .editor-toolbar {
