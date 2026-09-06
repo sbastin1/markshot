@@ -4,7 +4,7 @@ export type ScreenshotResult = {
 
 export type HistoryItem = {
   path: string;
-  data_url: string;
+  image_url: string;
   created_at: number;
 };
 

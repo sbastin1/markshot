@@ -1,5 +1,7 @@
-import { invoke } from "@tauri-apps/api/core";
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import type { HistoryItem, SaveResult, ScreenshotResult } from "../types/screenshot";
+
+type HistoryItemResponse = Omit<HistoryItem, "image_url">;
 
 export function takeScreenshot() {
   return invoke<ScreenshotResult>("take_screenshot");
@@ -10,7 +12,12 @@ export function saveAndCopyEditedScreenshot(dataUrl: string) {
 }
 
 export function listEditedScreenshots() {
-  return invoke<HistoryItem[]>("list_edited_screenshots");
+  return invoke<HistoryItemResponse[]>("list_edited_screenshots").then((items) =>
+    items.map((item) => ({
+      ...item,
+      image_url: convertFileSrc(item.path),
+    })),
+  );
 }
 
 export function copyScreenshotToClipboard(path: string) {

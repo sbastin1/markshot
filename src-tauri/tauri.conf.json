@@ -21,6 +21,10 @@
       }
     ],
     "security": {
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$HOME/Pictures/Screenshots/**"]
+      },
       "csp": null
     }
   }

@@ -11,7 +11,7 @@
             type="button"
             @click="$emit('copy', item.path)"
         >
-            <img :src="item.data_url" alt="Edited screenshot" />
+            <img :src="item.image_url" alt="Edited screenshot" />
             <span>{{ fileName(item.path) }}</span>
         </button>
     </section>

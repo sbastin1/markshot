@@ -1,14 +1,10 @@
 use std::{
     env, fs,
-    io::Cursor,
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use image::ImageFormat;
 use serde::Serialize;
-
-use crate::screenshot::png_data_url;
 
 pub const EDITED_SCREENSHOT_PREFIX: &str = "edited-screenshot";
 pub const RAW_SCREENSHOT_PREFIX: &str = "screenshot";
@@ -18,7 +14,6 @@ pub const MAX_RAW_SCREENSHOTS: usize = 3;
 #[derive(Serialize)]
 pub struct HistoryItem {
     path: String,
-    data_url: String,
     created_at: u64,
 }
 
@@ -32,27 +27,26 @@ pub fn edited_screenshot_path() -> Result<PathBuf, String> {
 }
 
 pub fn list_edited_screenshots() -> Result<Vec<HistoryItem>, String> {
-    cleanup_known_screenshots()?;
+    let mut files = screenshot_files(EDITED_SCREENSHOT_PREFIX)?;
+    files.sort_by(|left, right| right.created_at.cmp(&left.created_at));
 
-    let mut items = screenshot_files(EDITED_SCREENSHOT_PREFIX)?;
-    items.sort_by(|left, right| right.created_at.cmp(&left.created_at));
-    items.truncate(MAX_EDITED_SCREENSHOTS);
+    for file in files.iter().skip(MAX_EDITED_SCREENSHOTS) {
+        fs::remove_file(&file.path).map_err(|error| {
+            format!(
+                "Failed to delete old screenshot {}: {error}",
+                file.path.display()
+            )
+        })?;
+    }
 
-    items
+    Ok(files
         .into_iter()
-        .map(|file| {
-            let image_bytes = fs::read(&file.path).map_err(|error| {
-                format!("Failed to read screenshot {}: {error}", file.path.display())
-            })?;
-            let thumbnail = thumbnail_png(&image_bytes)?;
-
-            Ok(HistoryItem {
-                path: file.path.to_string_lossy().to_string(),
-                data_url: png_data_url(&thumbnail),
-                created_at: file.created_at,
-            })
+        .take(MAX_EDITED_SCREENSHOTS)
+        .map(|file| HistoryItem {
+            path: file.path.to_string_lossy().to_string(),
+            created_at: file.created_at,
         })
-        .collect()
+        .collect())
 }
 
 pub fn cleanup_known_screenshots() -> Result<(), String> {
@@ -157,17 +151,4 @@ fn cleanup_screenshots(prefix: &str, max_files: usize) -> Result<(), String> {
     }
 
     Ok(())
-}
-
-fn thumbnail_png(image_bytes: &[u8]) -> Result<Vec<u8>, String> {
-    let image = image::load_from_memory(image_bytes)
-        .map_err(|error| format!("Failed to decode history thumbnail: {error}"))?;
-    let thumbnail = image.thumbnail(420, 280);
-    let mut thumbnail_bytes = Vec::new();
-
-    thumbnail
-        .write_to(&mut Cursor::new(&mut thumbnail_bytes), ImageFormat::Png)
-        .map_err(|error| format!("Failed to encode history thumbnail: {error}"))?;
-
-    Ok(thumbnail_bytes)
 }
