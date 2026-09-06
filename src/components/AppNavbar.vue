@@ -21,6 +21,15 @@
             >
                 History
             </button>
+            <button
+                class="ghost-button app-navbar__settings-button"
+                type="button"
+                aria-label="Settings"
+                title="Settings"
+                @click="$emit('settings')"
+            >
+                <span aria-hidden="true"></span>
+            </button>
         </div>
     </nav>
 </template>
@@ -35,6 +44,7 @@ defineProps<{
 defineEmits<{
     capture: [];
     history: [];
+    settings: [];
 }>();
 </script>
 
@@ -69,6 +79,21 @@ defineEmits<{
     &__actions {
         gap: $space-gap-md;
         flex-wrap: wrap;
+    }
+
+    &__settings-button {
+        width: $size-control-height;
+        height: $size-control-height;
+        padding: 0;
+        display: grid;
+        place-items: center;
+
+        span {
+            width: 1.2rem;
+            height: 1.2rem;
+            background: currentColor;
+            mask: url("../assets/settings-icon.svg") center / contain no-repeat;
+        }
     }
 }
 

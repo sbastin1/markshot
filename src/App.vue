@@ -13,11 +13,18 @@
     </header>
 
     <main class="app-shell">
-      <AppNavbar :is-capturing="isCapturing" @capture="captureScreenshot" @history="showHistory" />
+      <AppNavbar :is-capturing="isCapturing" @capture="captureScreenshot" @history="showHistory" @settings="showSettings" />
 
       <StatusMessage :is-error="hasError" :message="statusMessage" />
 
       <HistoryGrid v-if="view === 'history'" :items="historyItems" @copy="copyHistoryItem" />
+
+      <SettingsPanel
+        v-else-if="view === 'settings'"
+        :directory="screenshotDirectory"
+        :is-saving="isSavingSettings"
+        @save="saveSettings"
+      />
 
       <ScreenshotEditor
         v-else-if="screenshotUrl"
@@ -39,6 +46,7 @@ import { listen } from "@tauri-apps/api/event";
 import { onMounted, onUnmounted, ref } from "vue";
 import AppNavbar from "./components/AppNavbar.vue";
 import HistoryGrid from "./components/HistoryGrid.vue";
+import SettingsPanel from "./components/SettingsPanel.vue";
 import ScreenshotEditor from "./components/ScreenshotEditor.vue";
 import StatusMessage from "./components/StatusMessage.vue";
 import type { HistoryItem } from "./types/screenshot";
@@ -46,8 +54,10 @@ import { errorMessage } from "./utils/errors";
 import { fileName } from "./utils/file";
 import {
   copyScreenshotToClipboard,
+  getScreenshotDirectory,
   listEditedScreenshots,
   saveAndCopyEditedScreenshot,
+  setScreenshotDirectory,
   startupShouldTakeScreenshot,
   takeScreenshot,
 } from "./utils/tauriCommands";
@@ -59,12 +69,14 @@ import {
   toggleMaximizeAppWindow,
 } from "./utils/window";
 
-const view = ref<"editor" | "history">("editor");
+const view = ref<"editor" | "history" | "settings">("editor");
 const isCapturing = ref(false);
 const isSaving = ref(false);
+const isSavingSettings = ref(false);
 const statusMessage = ref("");
 const hasError = ref(false);
 const screenshotUrl = ref("");
+const screenshotDirectory = ref("");
 const historyItems = ref<HistoryItem[]>([]);
 
 let unlistenScreenshotCommand: (() => void) | null = null;
@@ -133,6 +145,32 @@ async function showHistory() {
     historyItems.value = await listEditedScreenshots();
   } catch (error) {
     setStatus(errorMessage(error), true);
+  }
+}
+
+async function showSettings() {
+  view.value = "settings";
+  setStatus("", false);
+
+  try {
+    screenshotDirectory.value = await getScreenshotDirectory();
+  } catch (error) {
+    setStatus(errorMessage(error), true);
+  }
+}
+
+async function saveSettings(directory: string) {
+  isSavingSettings.value = true;
+  setStatus("", false);
+
+  try {
+    screenshotDirectory.value = await setScreenshotDirectory(directory);
+    historyItems.value = [];
+    setStatus("Screenshot save directory updated.", false);
+  } catch (error) {
+    setStatus(errorMessage(error), true);
+  } finally {
+    isSavingSettings.value = false;
   }
 }
 

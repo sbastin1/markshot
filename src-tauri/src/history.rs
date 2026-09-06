@@ -1,5 +1,5 @@
 use std::{
-    env, fs,
+    fs,
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -22,12 +22,12 @@ pub struct ScreenshotFile {
     pub created_at: u64,
 }
 
-pub fn edited_screenshot_path() -> Result<PathBuf, String> {
-    screenshot_path(EDITED_SCREENSHOT_PREFIX)
+pub fn edited_screenshot_path(directory: &Path) -> Result<PathBuf, String> {
+    screenshot_path(directory, EDITED_SCREENSHOT_PREFIX)
 }
 
-pub fn list_edited_screenshots() -> Result<Vec<HistoryItem>, String> {
-    let mut files = screenshot_files(EDITED_SCREENSHOT_PREFIX)?;
+pub fn list_edited_screenshots(directory: &Path) -> Result<Vec<HistoryItem>, String> {
+    let mut files = screenshot_files(directory, EDITED_SCREENSHOT_PREFIX)?;
     files.sort_by(|left, right| right.created_at.cmp(&left.created_at));
 
     for file in files.iter().skip(MAX_EDITED_SCREENSHOTS) {
@@ -49,12 +49,16 @@ pub fn list_edited_screenshots() -> Result<Vec<HistoryItem>, String> {
         .collect())
 }
 
-pub fn cleanup_known_screenshots() -> Result<(), String> {
-    cleanup_screenshots(EDITED_SCREENSHOT_PREFIX, MAX_EDITED_SCREENSHOTS)?;
-    cleanup_screenshots(RAW_SCREENSHOT_PREFIX, MAX_RAW_SCREENSHOTS)
+pub fn cleanup_known_screenshots(directory: &Path) -> Result<(), String> {
+    cleanup_screenshots(directory, EDITED_SCREENSHOT_PREFIX, MAX_EDITED_SCREENSHOTS)?;
+    cleanup_screenshots(directory, RAW_SCREENSHOT_PREFIX, MAX_RAW_SCREENSHOTS)
 }
 
-pub fn is_edited_screenshot_path(path: &Path) -> bool {
+pub fn is_edited_screenshot_path(directory: &Path, path: &Path) -> bool {
+    if !path.starts_with(directory) {
+        return false;
+    }
+
     path.file_name()
         .and_then(|file_name| file_name.to_str())
         .is_some_and(|file_name| {
@@ -63,9 +67,7 @@ pub fn is_edited_screenshot_path(path: &Path) -> bool {
         })
 }
 
-fn screenshot_path(prefix: &str) -> Result<PathBuf, String> {
-    let mut directory = screenshot_directory();
-
+fn screenshot_path(directory: &Path, prefix: &str) -> Result<PathBuf, String> {
     fs::create_dir_all(&directory).map_err(|error| {
         format!(
             "Failed to create screenshot directory {}: {error}",
@@ -78,23 +80,10 @@ fn screenshot_path(prefix: &str) -> Result<PathBuf, String> {
         .map_err(|error| format!("System clock error: {error}"))?
         .as_secs();
 
-    directory.push(format!("{prefix}-{timestamp}.png"));
-    Ok(directory)
+    Ok(directory.join(format!("{prefix}-{timestamp}.png")))
 }
 
-fn screenshot_directory() -> PathBuf {
-    let mut directory = env::var_os("HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(env::temp_dir);
-
-    directory.push("Pictures");
-    directory.push("Screenshots");
-    directory
-}
-
-fn screenshot_files(prefix: &str) -> Result<Vec<ScreenshotFile>, String> {
-    let directory = screenshot_directory();
-
+fn screenshot_files(directory: &Path, prefix: &str) -> Result<Vec<ScreenshotFile>, String> {
     if !directory.exists() {
         return Ok(Vec::new());
     }
@@ -137,8 +126,8 @@ fn screenshot_files(prefix: &str) -> Result<Vec<ScreenshotFile>, String> {
     Ok(files)
 }
 
-fn cleanup_screenshots(prefix: &str, max_files: usize) -> Result<(), String> {
-    let mut files = screenshot_files(prefix)?;
+fn cleanup_screenshots(directory: &Path, prefix: &str, max_files: usize) -> Result<(), String> {
+    let mut files = screenshot_files(directory, prefix)?;
     files.sort_by(|left, right| right.created_at.cmp(&left.created_at));
 
     for file in files.into_iter().skip(max_files) {

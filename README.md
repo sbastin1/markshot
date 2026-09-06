@@ -110,6 +110,27 @@ For a window manager keybinding, use the absolute binary path if your compositor
 bindsym Print exec /home/admin/.local/bin/markshot --screenshot
 ```
 
+## Configuration
+
+Markshot stores user settings in `settings.json` under the platform config directory:
+
+- `$XDG_CONFIG_HOME/markshot/settings.json` when `XDG_CONFIG_HOME` is set.
+- `$HOME/.config/markshot/settings.json` otherwise.
+
+The current setting is:
+
+```json
+{
+  "screenshot_directory": "/home/user/Pictures/Screenshots"
+}
+```
+
+The screenshot directory controls where edited screenshots are saved, where history is loaded from, and which history files can be copied back to the clipboard.
+
+The default screenshot path is `$HOME/Pictures/Screenshots`. Markshot uses this path when no `settings.json` exists or when the app has not been configured yet.
+
+An example config is available at `docs/settings.example.json`. Do not commit your real `settings.json`; it is user-specific and lives outside the project directory.
+
 ## Troubleshooting
 
 If the application does not start, starts with a blank window, or fails when launched from a keybinding, try setting `WEBKIT_DISABLE_DMABUF_RENDERER=1`:
